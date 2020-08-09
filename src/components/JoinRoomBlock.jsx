@@ -10,7 +10,7 @@ function JoinRoomBlock(props) {
     let [isLoading, setLoading] = React.useState(false);
     let [error, setError] = React.useState(false);
 
-    let handleJoinRoom = async () => {
+    let handleJoinRoom = async () => {      // Реквестим, существует ли комната. Если да, входим в нее
 
         if (!userName) {
             alert('ВВЕДИТЕ ИМЯ')

@@ -7,7 +7,7 @@ function CreateRoomBlock({onCreateRoom}) {
 
     let [isLoading, setLoading] = React.useState(false);
 
-    let handleCreateRoom = async () => {
+    let handleCreateRoom = async () => {        // Реквестим создание комнаты, получаем ее ID, вносим его в адресную строку
         if (!userName) {
             alert('ВВЕДИТЕ ИМЯ')
         } else {

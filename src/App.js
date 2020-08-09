@@ -19,19 +19,16 @@ function App() {
         messages: []
     });
 
-    const onCreateRoom = async obj => {
-        dispatch({type: 'SET-JOINED', payload: obj});
-        socket.emit('ROOM:JOIN', obj);
+    const onCreateRoom = async obj => {        // Подключаемся к комнате, получаем список пользователей
+        socket.emit('JOIN-ROOM', obj);
         const data = await axios.get(`/rooms/${obj.roomId}`);
-        debugger
         dispatch({type: 'SET-DATA', payload: data.data});
     };
 
-    const onJoinRoom = async (obj) => {
+    const onJoinRoom = async (obj) => {        // Подключаемся к комнате, получаем сообщения и список пользователей
         dispatch({type: 'SET-JOINED', payload: obj});
-        socket.emit('ROOM:JOIN', obj);
+        socket.emit('JOIN-ROOM', obj);
         let data = await axios.get(`/rooms/${obj.roomId}`);
-        debugger
         dispatch({type: 'SET-DATA', payload: data.data});
     }
 
@@ -44,13 +41,12 @@ function App() {
     };
 
     React.useEffect(() => {
-        socket.on('SET-USERS', setUsers); // выполняется setUsers с юзерами с сервера
+        socket.on('SET-USERS', setUsers);
         socket.on('NEW-MESSAGE', setNewMessage);
     }, []);
 
-    window.socket = socket;
-
-    console.log('state = ', state);
+    // Если в ссылке указана комната, то у пользователя будет возможность подключиться к ней (если она существует)
+    // Если в ссылке комнаат не указана, то будет предложено создать новую (с рандомным ID)
 
     if (state.isJoined) return <div className="wrapper"><Chat {...state} onAddNewMessage={setNewMessage}/></div>
 

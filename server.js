@@ -1,5 +1,5 @@
 const express = require('express');
-const useSocket = require('socket.io')
+const useSocket = require('socket.io');
 
 const app = express();
 const server = require('http').createServer(app);
@@ -9,7 +9,7 @@ app.use(express.json());
 
 let rooms = new Map();
 
-app.get('/rooms/:roomId', (req, res) => {
+app.get('/rooms/:roomId', (req, res) => {       // Получаем данные при входе в комнату
     const roomId = +req.params.roomId;
 
     const obj = rooms.has(roomId) ? {
@@ -22,14 +22,12 @@ app.get('/rooms/:roomId', (req, res) => {
     res.json(obj);
 });
 
-app.get('/create-room', (req, res) => {
+app.get('/create-room', (req, res) => {     // Создаем комнату с рандомным ID (от 100 до 999)
 
     const roomIdGenerator = () => {
         return Math.round(Math.random() * (999 - 100) + 100);
     };
-
     let roomId = roomIdGenerator();
-
     while (rooms.has(roomId)) roomId = roomIdGenerator();
 
     rooms.set(roomId, new Map([
@@ -37,24 +35,11 @@ app.get('/create-room', (req, res) => {
         ['messages', []]
     ]))
 
-
     const obj = {roomId};
-
     res.json(obj);
 });
 
-app.post('/rooms', (req, res) => { // не используется
-    const {roomId} = req.body;
-    if (!rooms.has(roomId)) {
-        rooms.set(roomId, new Map([
-            ['users', new Map()],
-            ['messages', []]
-        ]))
-    }
-    res.send();
-});
-
-app.get('/check-room/:roomId', (req, res) => {
+app.get('/check-room/:roomId', (req, res) => {      // Проверяем команту из адресной строки на предмет существования
     const roomId = +req.params.roomId;
 
     let obj = rooms.has(roomId) ? {roomExist: true} : {roomExist: false};
@@ -64,16 +49,16 @@ app.get('/check-room/:roomId', (req, res) => {
 io.on('connection', socket => {
     console.log('user connected', socket.id);
 
-    socket.on('ROOM:JOIN', ({roomId, userName}) => {
+    socket.on('JOIN-ROOM', ({roomId, userName}) => {        // Подключаемся к комнате, передаем массив пользователей
         socket.join(roomId);
         rooms.get(roomId).get('users').set(socket.id, userName);
         const users = [...rooms.get(roomId).get('users').values()];
         socket.to(roomId).emit('SET-USERS', users);
-        console.log('Массив пользователей:', users.toString());
+        console.log('Users in room:', users.toString());
     });
 
 
-    socket.on('NEW-MESSAGE', ({roomId, userName, text}) => {
+    socket.on('NEW-MESSAGE', ({roomId, userName, text}) => {        // Генерируем время отправки сообщения, передаем данные в комнату
         const currentDate = new Date();
         const hours = currentDate.getHours().toString().length === 1
             ? '0' + currentDate.getHours()
@@ -82,7 +67,6 @@ io.on('connection', socket => {
             ? '0' + currentDate.getMinutes()
             : currentDate.getMinutes();
         const time = `${hours}:${minutes}`;
-        console.log(time);
         const obj = {userName, text, time};
         rooms.get(roomId).get('messages').push(obj);
         socket.to(roomId).emit('NEW-MESSAGE', obj);
